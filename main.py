@@ -1,46 +1,31 @@
 from machine import Pin, ADC
-from neopixel import NeoPixel
+from led import Drumled
 from time import sleep
 
+SENSOR_MAX = 65535
+SENSOR_THRESHOLD = 5000
 sensor = ADC(Pin(26))
 
-ledPin = Pin(28)
-N = 8
-MAX = 65535
-led = NeoPixel(ledPin, N)
+led = Drumled(data_pin=28, strip_size=8)
 
-# for i in range(N):
-#     led[i] = (0, 100, (i / N) * 255)
-#     led.write()
-#     sleep(0.2)
-#
-# sleep(10)
 
-for i in range(N):
-    led[i] = (0, 20, 10)
-    led.write()
-    sleep(0.3)
+def read_vibration():
+    value = sensor.read_u16()
+    if value == SENSOR_MAX:
+        print('MAX Vibration read')
+    return value
 
-# sleep(2)
 
-# while True:
-#     vibration = sensor.read_u16()
-#     if vibration == MAX:
-#         print('max sensor read')
-#     # if 1000 < vibration < MAX:
-#     #     print(vibration)
-#
-#     if vibration > 1000:
-#         brightness = round(max(0.05, min(vibration / MAX, 1.0)) * 255)
-#         print(brightness)
-#         for i in range(N):
-#             led[i] = (brightness, 0, 0)
-#         led.write()
-#         sleep(0.15)
-#         for i in range(N):
-#             led[i] = (round(brightness / 4), 0, 0)
-#         led.write()
-#         sleep(0.05)
-#         for i in range(N):
-#             led[i] = (round(brightness / 20), 0, 0)
-#         led.write()
+def calc_brightness(sensor_value):
+    return round(max(0.0, min(vibration / SENSOR_MAX, 1.0)) * 255)
+
+
+led.test()
+
+while True:
+    vibration = read_vibration()
+
+    if vibration > SENSOR_THRESHOLD:
+        brightness = calc_brightness(vibration)
+        print("New Brightness: " + str(brightness))
+        led.pulse(brightness)
